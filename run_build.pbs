@@ -1,18 +1,18 @@
 #!/bin/bash
 
 #PBS -P SIHnextgen
-#PBS -l select=1:ncpus=12:mem=32gb
-#PBS -l walltime=4:00:00
-#PBS -N exec01
+#PBS -l select=1:ncpus=1:mem=8gb
+#PBS -l walltime=1:00:00
+#PBS -N build01
 
 module load singularity
 
 # Assuming you are running this from your project folder, /project/<YOUR_PROJECT>
 cd $PBS_O_WORKDIR
 
+# If these are not set, it defaults to your home folder which will fill up very quickly.
 export SINGULARITY_CACHEDIR=`pwd`
 export SINGULARITY_TMPDIR=`pwd`
 
 # Build takes around 30 mins.
-singularity run --bind /project:/project rstan.img /bin/bash \
-  -c "export TMPDIR="$PBS_O_WORKDIR" && Rscript code/test.R
+singularity build rstan.img docker://sydneyinformaticshub/rstan:4.0.5

@@ -1,39 +1,55 @@
+#Dockerfile
+
 #To build this file:
-#sudo docker build . -t nbutter/cellranger:ubuntu1604
+#sudo docker build . -t sydneyinformaticshub/rstan:4.0.5
 
 #To run this, mounting your current host directory in the container directory,
 # at /project, and excute an example run:
-#sudo docker run -it -v `pwd`:/project nbutter/cellranger:ubuntu1604 /bin/bash -c "cellranger sitecheck > /project/sitecheck.txt"
+# sudo docker run -it -v `pwd`:/project sydneyinformaticshub/rstan:4.0.5 /bin/bash -c "/usr/bin/time Rscript demostan.R"
 
-#To push to docker hub:
-#sudo docker push nbutter/cellranger:ubuntu1604
-
-#To build a singularity container
-#export SINGLUARITY_CACHEDIR=`pwd`
-#export SINGLUARITY_TMPDIR=`pwd`
-#singularity build cellranger.img docker://nbutter/cellranger:ubuntu1604
-
-#To run the singularity image (noting singularity mounts the current folder by default)
-#singularity run --bind /project:/project cellranger.img /bin/bash -c "cd "$PBS_O_WORKDIR" && cellranger sitecheck > sitecheck.txt"
+# To push to docker hub:
+# sudo docker push sydneyinformaticshub/rstan:4.0.5
 
 # Pull base image.
 FROM ubuntu:16.04
 MAINTAINER Nathaniel Butterworth USYD SIH
 
-RUN mkdir /project /scratch && touch /usr/bin/nvidia-smi
+# Install dependencies
+RUN apt-get update
+RUN apt-get install -y software-properties-common build-essential wget xserver-xorg-dev libx11-dev libxt-dev libpcre2-dev curl libcurl4-openssl-dev
+RUN apt-get install -y libtbb-dev  texlive-latex-base libbz2-dev liblzma-dev libreadline-dev
 
-# Set up ubuntu dependencies
-RUN apt-get update -y && \
-  apt-get install -y wget git build-essential git curl libgl1 libglib2.0-0 libsm6 libxrender1 libxext6 && \
-  rm -rf /var/lib/apt/lists/*
+# Install updated compilers
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update -y
+RUN apt-get install gcc-6 g++-6 gfortran-6  -y
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 60
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 60
+RUN	update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-6 60
 
-# Make the dir everything will go in
+RUN apt-get install gcc-7 g++-7 gfortran-7  -y
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 70
+RUN	update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-7 70
+
+# Install R
 WORKDIR /build
 
-RUN curl -o cellranger-7.1.0.tar.gz "https://cf.10xgenomics.com/releases/cell-exp/cellranger-7.1.0.tar.gz?Expires=1675698474&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9jZi4xMHhnZW5vbWljcy5jb20vcmVsZWFzZXMvY2VsbC1leHAvY2VsbHJhbmdlci03LjEuMC50YXIuZ3oiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE2NzU2OTg0NzR9fX1dfQ__&Signature=PLekkTNx7NbYv7ul1aMFjGt7NT1KXJHltEb95beWYhfZFVHOOE9ZKtWuSMZmruHDRVFO57bGDLn8z7d-lZ8~lGHs32uNokNHs2fpsqvpj2IZmzUb4-WXi5W75V3TiQY580cCVxC8bY9-S3JOJfs~7aLS2ZVhIlyMMM2yf1SaeCPxEnPKoOLDcgRC8D7gZUd3Os6n-n0YI1vnOFC4FvaEtSvf~6lmJIqhxonWiIn3Wg9GU-frlGn6aTFwfCPfceT2ukaAna1-S~K0mjBeiHbZ7Y7PvPkRYPNpJ81XTqAl8sz7F0N7zdrS9mDE~kCa3lfGVrCzfV30~K0dA98UgxXzTw__&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA"
-#
-RUN tar -xvf cellranger-7.1.0.tar.gz
+RUN wget -c https://cran.r-project.org/src/base/R-4/R-4.0.5.tar.gz && tar -xf R-4.0.5.tar.gz
 
-ENV PATH=""/build/cellranger-7.1.0:${PATH}""
+WORKDIR /build/R-4.0.5
 
-CMD cellranger
+RUN bash configure
+RUN make -j 12
+RUN make install
+
+RUN /usr/local/bin/Rscript --version
+
+# Install R libraries
+RUN /usr/local/bin/Rscript -e 'install.packages(c("MASS","rstan","doParallel","LaplacesDemon"), repos="https://cloud.r-project.org", dependencies = TRUE)'
+
+# Add extra items for Artemis HPC
+RUN mkdir /project /scratch && touch /usr/bin/nvidia-smi
+
+WORKDIR /project
+
+RUN apt install -y time
