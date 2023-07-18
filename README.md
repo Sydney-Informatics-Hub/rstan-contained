@@ -14,7 +14,7 @@ Put this repo on Artemis e.g.
 cd /project/<YOUR_PROJECT>
 git clone https://github.com/Sydney-Informatics-Hub/rstan-contained.git
 ```
-Then `cd rstan-contained` and modify the `run_artemis.pbs` script and launch with `qsub run_artemis.pbs`.
+Then `cd rstan-contained` and modify the `*.pbs` scripts as needed and launch with `qsub run_build.pbs` to build the RStan Singularity image *once*, then afterwards use `qsub run_artemis.pbs` to run any workload.
 
 Otherwise here are the full instructions for getting there....
 
