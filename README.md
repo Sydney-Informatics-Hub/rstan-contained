@@ -42,6 +42,7 @@ See the repo at [https://hub.docker.com/r/sydneyinformaticshub/rstan](https://hu
 
 
 ## Build with singularity
+Use the `run_build.pbs` script to build on an Artemis compute node. The key details are:
 ```
 export SINGULARITY_CACHEDIR=`pwd`
 export SINGULARITY_TMPDIR=`pwd`
@@ -50,7 +51,8 @@ singularity build rstan.img docker://sydneyinformaticshub/rstan:4.0.5
 ```
 
 ## Run with singularity
-To run the singularity image (noting singularity mounts the current folder by default)
+Use the `run_artemis.pbs` script to run an exampled workflow on an Artemis compute node.
+To run the singularity image (noting singularity mounts the current folder by default):
 ```
 singularity run --bind /project:/project rstan.img /bin/bash -c "export TMPDIR="$PBS_O_WORKDIR" && Rscript code/test.R
 ```
