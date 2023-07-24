@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #PBS -P SIHnextgen
-#PBS -l select=1:ncpus=12:mem=32gb
-#PBS -l walltime=4:00:00
+#PBS -l select=1:ncpus=8:mem=16gb
+#PBS -l walltime=9:00:00
 #PBS -N exec01
 
 module load singularity
@@ -13,6 +13,8 @@ cd $PBS_O_WORKDIR
 export SINGULARITY_CACHEDIR=`pwd`
 export SINGULARITY_TMPDIR=`pwd`
 
-# Build takes around 30 mins.
+# Modify the relative code path to your R script. 
+# Set appropriate walltime for running.
+# This currently expects you to be in your /project folder when submitting the job.
 singularity run --bind /project:/project rstan.img /bin/bash \
   -c "export TMPDIR="$PBS_O_WORKDIR" && Rscript code/test.R
