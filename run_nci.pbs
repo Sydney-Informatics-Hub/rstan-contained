@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -P er01
+#PBS -q normal
+#PBS -l ncpus=2
+#PBS -l mem=4GB
+#PBS -l walltime=00:10:00
+#PBS -l wd
+
+# Load Singularity module
+module load singularity
+
+# Define the path to Singularity image and Rscript
+SINGULARITY_IMAGE="rstan.sif"
+RSCRIPT="demostan.R"
+
+# Run the Singularity container
+singularity exec $SINGULARITY_IMAGE /bin/bash -c "Rscript $RSCRIPT"
